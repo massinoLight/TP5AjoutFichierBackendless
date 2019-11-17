@@ -5,29 +5,41 @@ import android.os.Bundle
 
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.AsyncTask
+import android.os.Environment
+import android.util.Log
 import android.widget.ImageView
 
 import com.backendless.Backendless
+import com.backendless.exceptions.BackendlessFault
+import com.backendless.files.BackendlessFile
 import com.backendless.persistence.DataQueryBuilder
 import kotlinx.android.synthetic.main.style_dune_ligne.*
 import org.jetbrains.anko.doAsync
 
 import org.jetbrains.anko.startActivityForResult
 import org.jetbrains.anko.toast
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.*
 import android.net.ConnectivityManager as ConnectivityManager1
+import com.backendless.async.callback.AsyncCallback as AsyncCallback1
 
 
 data class PersonneBackendLess(var objectId: String? = null,
-                               var Bimage: Bitmap? = null,
+                               var Bimage: String = "",
                                var Bnom: String = "",
                                var Bemail:String="",
                                var Btel:String="",
@@ -43,15 +55,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     var personnes = mutableListOf<Personne>()
-    //lateinit var IMAGE:Bitmap
+
     var IMAGE:Bitmap?=null
+    var chemin:Uri?=Uri.parse("/data/data/com.example.apptp3/app_images/" +
+            "0e792aa8-17a0-4cf1-aec9-c15e76c09857.jpg")
 
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        //la ligne a ajouter pour indiquer l'app id et app key
+
         Backendless.initApp(this, APP_ID, API_KEY)
         //on recupére une image aléatoire en http
         IMAGE=recupImage()
@@ -110,18 +124,23 @@ class MainActivity : AppCompatActivity() {
 
 
 
+    /****
+     *
+     * on retourn une image et on garde son chemin
+     *
+     * **/
     fun recupImage():Bitmap?{
         RecuperationImage()
             .execute("https://source.unsplash.com/random/800x600").get()
         val img=IMAGE
+
+        //toast("${chemin}")
+
+        chemin=saveImageToInternalStorage(img)
+        //image.setImageURI(Uri.parse("file://mnt/sdcard/photoContacts/images.jpg"))
         return img
 
     }
-
-
-
-
-
 
     inner class RecuperationContacts(): AsyncTask<String, Int, MutableList<MutableMap<Any?, Any?>>>() {
 
@@ -156,11 +175,14 @@ class MainActivity : AppCompatActivity() {
                 //RecuperationImage()
 
 
-                val p10=Personne(IMAGE,
+
+                val p10=Personne(
                 "${msg["bNom"]}",
                 "${msg["bEmai"]}",
                 "${msg["bTel"]}",
-                "${msg["bFixe"]}")
+                "${msg["bFixe"]}",
+                    Uri.parse("${msg["bimage"]}")
+                )
                 personnes.add(p10)
                 //image.setImageBitmap(${msg["bImage"]})
                 personnes.sortWith(compareBy({it.nom}))
@@ -194,18 +216,23 @@ class MainActivity : AppCompatActivity() {
 
 
 
-                        var p8= Personne(photo ,nouvValeurnom,nouvValeuremail,nouvValeurtel,nouvValeurfixe)
+                        var p8=Personne(nouvValeurnom
+                            ,nouvValeuremail,nouvValeurtel,
+                            nouvValeurfixe,chemin)
 
 
                         //un objet PersonneBackendLess que l on va stocker dans notre cloud
-                        val per = PersonneBackendLess(null,IMAGE, nouvValeurnom, nouvValeuremail,
+                        val per = PersonneBackendLess(null,chemin.toString(), nouvValeurnom, nouvValeuremail,
                             nouvValeurtel,nouvValeurfixe)
+
+
+
 
                         doAsync {
                             Backendless.Persistence
                                 .of(PersonneBackendLess::class.java).save(per)
-                        }
 
+                        }
 
 
                         toast("Données bien ajouté au cloud")
@@ -251,6 +278,47 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+
+
+    /****
+     *
+     * Sauvgarder une image dans le stockage intern de l'application
+     * et garder le chemin pour le stocker dans le cloud
+     * et on recupére pour chaque contact le photo qui lui est associé dans le cloud
+     *
+     *
+     * ***/
+
+    private fun saveImageToInternalStorage(img:Bitmap?):Uri{
+
+        val wrapper = ContextWrapper(applicationContext)
+
+
+        var file = wrapper.getDir("images", Context.MODE_PRIVATE)
+
+
+        // Create a file to save the image
+        file = File(file, "${UUID.randomUUID()}.jpg")
+
+        try {
+            // Get the file output stream
+            val stream: OutputStream = FileOutputStream(file)
+
+            // Compress bitmap
+            img?.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+
+            // Flush the stream
+            stream.flush()
+
+            // Close stream
+            stream.close()
+        } catch (e: IOException){ // Catch the exception
+            e.printStackTrace()
+        }
+
+        // Return the saved image uri
+        return Uri.parse(file.canonicalPath)
+    }
 
 
 }

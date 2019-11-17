@@ -1,6 +1,7 @@
 package com.example.tp5
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.style_dune_ligne.view.*
 
 
-data class Personne(val photo: Bitmap?, val nom:String, val email:String, val tel:String, val fixe:String)
+data class Personne(val nom:String,val email:String,val tel:String,val fixe:String,val imgUri: Uri?)
 
 class PersonneAdapter(val personneAAfficher: Array<Personne>, val listener: (Personne)-> Unit):
     RecyclerView.Adapter<PersonneAdapter.ViewHolder>() {
@@ -46,7 +47,7 @@ class PersonneAdapter(val personneAAfficher: Array<Personne>, val listener: (Per
             //remplissage de la partie nom
             itemView.tv_name.text=personne.nom
             itemView.tv_tel.text= personne.tel
-            itemView.image.setImageBitmap(personne.photo)
+            itemView.image.setImageURI(personne.imgUri)
 
             //l'action a realiser lors du clic  sur un element
             setOnClickListener{(listener(personne))}
