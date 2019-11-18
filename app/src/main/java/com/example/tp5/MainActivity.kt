@@ -15,6 +15,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.AsyncTask
+import android.os.BatteryManager
 import android.os.Environment
 import android.util.Log
 import android.widget.ImageView
@@ -106,6 +107,7 @@ class MainActivity : AppCompatActivity() {
 
         }
     }
+
 
 
 
@@ -331,7 +333,12 @@ class MainActivity : AppCompatActivity() {
         return Uri.parse(file.canonicalPath)
     }
 
-
+/****
+ * lorsque on quite l'application
+ * on se désabonne au Receiver
+ *
+ *
+ * **/
 
     override fun onDestroy() {
         unregisterReceiver(mReceiverOK);

@@ -23,7 +23,7 @@
         android:layout_marginLeft="114dp"
         android:layout_marginTop="22dp"
         android:text="Nom"
-        android:textColor="#000"
+        android:textColor="#F1E9E9"
         android:textSize="15sp"
         android:textStyle="italic"
         android:typeface="serif" />
@@ -39,7 +39,7 @@
         android:layout_marginLeft="108dp"
         android:layout_marginTop="58dp"
         android:text="Numero"
-        android:textColor="#000"
+        android:textColor="#F1E9E9"
         android:textSize="15sp"
         android:textStyle="italic"
         android:typeface="serif" />
