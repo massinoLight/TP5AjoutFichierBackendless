@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -47,6 +48,8 @@ data class PersonneBackendLess(var objectId: String? = null,
 
 
 class MainActivity : AppCompatActivity() {
+    val mReceiverOK=BatterieOK()
+    val mReceiverLOW=BatterieLow()
 
 
     companion object{
@@ -65,8 +68,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        /**
+         * voir le traitement a effectuer selon le niveau de la batterie ok ou low
+         *
+         * **/
+        this.registerReceiver(mReceiverLOW,  IntentFilter(Intent.ACTION_BATTERY_LOW))
+        this.registerReceiver(mReceiverOK,  IntentFilter(Intent.ACTION_BATTERY_OKAY))
 
         Backendless.initApp(this, APP_ID, API_KEY)
+
+
         //on recupére une image aléatoire en http
         IMAGE=recupImage()
 
@@ -320,5 +331,12 @@ class MainActivity : AppCompatActivity() {
         return Uri.parse(file.canonicalPath)
     }
 
+
+
+    override fun onDestroy() {
+        unregisterReceiver(mReceiverOK);
+        unregisterReceiver(mReceiverLOW);
+        super.onDestroy()
+    }
 
 }
