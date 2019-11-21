@@ -1,5 +1,6 @@
 package com.example.tp5
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
@@ -13,12 +14,14 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.BatteryManager
 import android.os.Environment
 import android.util.Log
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 
 import com.backendless.Backendless
 import com.backendless.exceptions.BackendlessFault
@@ -36,6 +39,7 @@ import java.io.OutputStream
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.log
 import android.net.ConnectivityManager as ConnectivityManager1
 import com.backendless.async.callback.AsyncCallback as AsyncCallback1
 
@@ -49,11 +53,7 @@ data class PersonneBackendLess(var objectId: String? = null,
 
 
 class MainActivity : AppCompatActivity() {
-    val mReceiverOK=BatterieOK()
-    val mReceiverLOW=BatterieLow()
-
-
-    companion object{
+     companion object{
         val APP_ID="98E5A86D-7391-F424-FF4F-17FAF6820200"
         val API_KEY="A1DA3880-52E0-4B98-B98F-71E7B5920367"
     }
@@ -63,20 +63,36 @@ class MainActivity : AppCompatActivity() {
     var IMAGE:Bitmap?=null
     var chemin:Uri?=Uri.parse("/data/data/com.example.apptp3/app_images/" +
             "0e792aa8-17a0-4cf1-aec9-c15e76c09857.jpg")
+    var LENIVEAUDELABATERIE=100
 
 
+    //on recup la valeur de l'ID si c'est la premiére ouverture de lappli le mettre a 0
+    //LENIVEAUDELABATERIE=objetShredPrefences.getInt("DERNIER", 0)
 
+
+    @SuppressLint("ResourceAsColor")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        /**
-         * voir le traitement a effectuer selon le niveau de la batterie ok ou low
-         *
-         * **/
-        this.registerReceiver(mReceiverLOW,  IntentFilter(Intent.ACTION_BATTERY_LOW))
-        this.registerReceiver(mReceiverOK,  IntentFilter(Intent.ACTION_BATTERY_OKAY))
-
         Backendless.initApp(this, APP_ID, API_KEY)
+        val objetShredPrefences=this?.getPreferences(Context.MODE_PRIVATE)
+        LENIVEAUDELABATERIE=objetShredPrefences.getInt("NIVEAUBAT", 100)
+
+/*****
+ * Si le niveau de la batere est faible mettre
+ * un theme dark
+ *
+ *
+ * ***/
+
+
+
+        if (LENIVEAUDELABATERIE<=15)
+        {
+            toast("la baterie est faible on passe en mode dark!!!!!!")
+
+            getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(this, R.color.noir))
+        }
 
 
         //on recupére une image aléatoire en http
@@ -102,6 +118,9 @@ class MainActivity : AppCompatActivity() {
         //le bouton pour permettre la saisie d'un contact
         btn_ajouter.setOnClickListener {
 
+            val editeur=objetShredPrefences.edit()
+            editeur.putInt("NIVEAUBAT",LENIVEAUDELABATERIE)
+            editeur.commit()
             startActivityForResult<AjoutPersonne>(1)
 
 
@@ -125,7 +144,7 @@ class MainActivity : AppCompatActivity() {
         override fun onPostExecute(result: Bitmap?) {
             if(result!=null){
                 // Display the downloaded image into image view
-                toast("telechargement avec succé")
+                //toast("telechargement avec succé")
 
                 IMAGE=result
                 //image.setImageBitmap(IMAGE)
@@ -209,6 +228,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    @SuppressLint("ResourceAsColor")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when(requestCode){
@@ -223,6 +243,18 @@ class MainActivity : AppCompatActivity() {
                         val nouvValeuremail = data?.getStringExtra(AjoutPersonne.EXTRA_EMAIL) ?: ""
                         val nouvValeurtel = data?.getStringExtra(AjoutPersonne.EXTRA_TEL) ?: ""
                         val nouvValeurfixe = data?.getStringExtra(AjoutPersonne.EXTRA_FAXE) ?: ""
+                        val laBaterieEstFaible = data?.getIntExtra(AjoutPersonne.EXTRA_BATERIE,-1)
+
+
+
+                        if (laBaterieEstFaible != null) {
+                            LENIVEAUDELABATERIE=laBaterieEstFaible
+                        }
+
+                        val objetShredPrefences=this?.getPreferences(Context.MODE_PRIVATE)
+                         val editeur=objetShredPrefences.edit()
+                        editeur.putInt("NIVEAUBAT",LENIVEAUDELABATERIE)
+                        editeur.commit()
 
                         val photo=recupImage()
 
@@ -248,12 +280,14 @@ class MainActivity : AppCompatActivity() {
                         }
 
 
-                        toast("Données bien ajouté au cloud")
+                        //toast("Données bien ajouté au cloud")
                         personnes.add(0,p8)
                         //cette ligne permet de trier la liste des contactes par ordre alphabetique
                         personnes.sortWith(compareBy({it.nom}))
                         buildRecyclerView()
                         mon_recycler.adapter?.notifyItemInserted(0)
+
+
 
                     }else{
                         //ID--
@@ -333,17 +367,9 @@ class MainActivity : AppCompatActivity() {
         return Uri.parse(file.canonicalPath)
     }
 
-/****
- * lorsque on quite l'application
- * on se désabonne au Receiver
- *
- *
- * **/
 
-    override fun onDestroy() {
-        unregisterReceiver(mReceiverOK);
-        unregisterReceiver(mReceiverLOW);
-        super.onDestroy()
-    }
+
 
 }
+
+

@@ -2,9 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fond"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#040405"
+
+
+    android:background="#00F7F0F0"
     tools:context=".MainActivity">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -12,11 +15,10 @@
         android:layout_width="414dp"
         android:layout_height="557dp"
         android:layout_marginStart="1dp"
-        android:layout_marginLeft="1dp"
         android:layout_marginTop="1dp"
         android:layout_marginEnd="1dp"
-        android:layout_marginRight="1dp"
         android:layout_marginBottom="1dp"
+        android:background="#00070707"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.52"
