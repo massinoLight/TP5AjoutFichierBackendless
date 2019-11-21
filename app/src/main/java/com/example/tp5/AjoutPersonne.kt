@@ -19,7 +19,7 @@ import android.widget.LinearLayout as LinearLayout1
 
 
 class AjoutPersonne : AppCompatActivity() {
-    val mReceiverLOW=BatterieLow()
+   // val mReceiverLOW=BatterieLow()
 
     companion object {
         const val EXTRA_VALIDER = "AjouterPersonne.valider"
@@ -35,7 +35,7 @@ class AjoutPersonne : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.personne_ajout)
 
-        this.registerReceiver(mReceiverLOW,  IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        //this.registerReceiver(mReceiverLOW,  IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
 
         //le bouton ajouter on recup les informations saisies et on les passe en paaramétre a l'intent
@@ -47,7 +47,7 @@ class AjoutPersonne : AppCompatActivity() {
             else{
 
 
-                var laBaterieEstFaible=mReceiverLOW.valeur
+                //var laBaterieEstFaible=mReceiverLOW.valeur
 
                 val intent = Intent()
                 // On a valider (=> true)
@@ -58,7 +58,7 @@ class AjoutPersonne : AppCompatActivity() {
                 intent.putExtra(EXTRA_TEL,ed_tel.text.toString() )
                 intent.putExtra(EXTRA_FAXE,ed_fixe.text.toString() )
 
-                intent.putExtra(EXTRA_BATERIE,laBaterieEstFaible)
+                //intent.putExtra(EXTRA_BATERIE,laBaterieEstFaible)
 
 
                 setResult(RESULT_OK, intent)
@@ -88,10 +88,6 @@ class AjoutPersonne : AppCompatActivity() {
      * **/
 
 
-    override fun onDestroy() {
-        // unregisterReceiver(mReceiverOK);
-        unregisterReceiver(mReceiverLOW);
-        super.onDestroy()
-    }
+
 
 }

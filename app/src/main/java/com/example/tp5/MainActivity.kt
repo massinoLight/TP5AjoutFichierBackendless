@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
     var chemin:Uri?=Uri.parse("/data/data/com.example.apptp3/app_images/" +
             "0e792aa8-17a0-4cf1-aec9-c15e76c09857.jpg")
     var LENIVEAUDELABATERIE=100
+    val mReceiverLOW=BatterieLow()
 
 
     //on recup la valeur de l'ID si c'est la premiére ouverture de lappli le mettre a 0
@@ -77,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         Backendless.initApp(this, APP_ID, API_KEY)
         val objetShredPrefences=this?.getPreferences(Context.MODE_PRIVATE)
         LENIVEAUDELABATERIE=objetShredPrefences.getInt("NIVEAUBAT", 100)
+        this.registerReceiver(mReceiverLOW,  IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
 /*****
  * Si le niveau de la batere est faible mettre
@@ -118,6 +120,11 @@ class MainActivity : AppCompatActivity() {
         //le bouton pour permettre la saisie d'un contact
         btn_ajouter.setOnClickListener {
 
+
+            var laBaterieEstFaible=mReceiverLOW.valeur
+            if (laBaterieEstFaible != null) {
+                LENIVEAUDELABATERIE=laBaterieEstFaible
+            }
             val editeur=objetShredPrefences.edit()
             editeur.putInt("NIVEAUBAT",LENIVEAUDELABATERIE)
             editeur.commit()
@@ -243,18 +250,16 @@ class MainActivity : AppCompatActivity() {
                         val nouvValeuremail = data?.getStringExtra(AjoutPersonne.EXTRA_EMAIL) ?: ""
                         val nouvValeurtel = data?.getStringExtra(AjoutPersonne.EXTRA_TEL) ?: ""
                         val nouvValeurfixe = data?.getStringExtra(AjoutPersonne.EXTRA_FAXE) ?: ""
-                        val laBaterieEstFaible = data?.getIntExtra(AjoutPersonne.EXTRA_BATERIE,-1)
+                        //val laBaterieEstFaible = data?.getIntExtra(AjoutPersonne.EXTRA_BATERIE,-1)
 
 
 
-                        if (laBaterieEstFaible != null) {
-                            LENIVEAUDELABATERIE=laBaterieEstFaible
-                        }
 
-                        val objetShredPrefences=this?.getPreferences(Context.MODE_PRIVATE)
+
+                       /* val objetShredPrefences=this?.getPreferences(Context.MODE_PRIVATE)
                          val editeur=objetShredPrefences.edit()
                         editeur.putInt("NIVEAUBAT",LENIVEAUDELABATERIE)
-                        editeur.commit()
+                        editeur.commit()*/
 
                         val photo=recupImage()
 
@@ -368,7 +373,11 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
+    override fun onDestroy() {
+        // unregisterReceiver(mReceiverOK);
+        unregisterReceiver(mReceiverLOW);
+        super.onDestroy()
+    }
 
 }
 
